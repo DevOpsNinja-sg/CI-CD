@@ -25,10 +25,13 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master  # Specify the action version
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=devopsproject \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_SCANNER_OPTS: "-Xmx2048m"  # Optional: Increase Java memory if needed
 
       # Optional: Uncomment the following lines to enforce Quality Gate
