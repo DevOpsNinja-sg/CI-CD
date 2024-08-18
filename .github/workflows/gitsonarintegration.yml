@@ -1,4 +1,4 @@
-name: SonarQube Analysis
+name: ProjectNinja-workflow
 
 on:
   push:
@@ -6,43 +6,34 @@ on:
       - main
 
 jobs:
-  sonarQubeScan:
-    runs-on: ubuntu-latest
-
+  build:
+    name: Build
+    runs-on: self-hosted  # Use your self-hosted runner
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v3  # Latest version of the checkout action
         with:
-          distribution: 'temurin'
-          java-version: '11'
+          fetch-depth: 0  # Disable shallow clone for full history analysis
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.6'  # Adjust to the Python version used in your project
 
-      - name: Install Sonar Scanner
+      - name: Install dependencies
         run: |
-          curl -Lo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
-          unzip sonar-scanner.zip -d $HOME
-          echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Add SonarScanner to PATH
-        run: echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
-
-      - name: Verify SonarScanner installation
-        run: sonar-scanner --version
-
-      - name: Run SonarQube scan
+      - name: Run SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v1.0.2  # Specify the action version
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          sonar-scanner \
-          -Dsonar.projectKey=devopsproject \
-          -Dsonar.sources=. \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          SONAR_SCANNER_OPTS: "-Xmx2048m"  # Optional: Increase Java memory if needed
+
+      # Optional: Uncomment the following lines to enforce Quality Gate
+      # - name: Quality Gate check
+      #   uses: sonarsource/sonarqube-quality-gate-action@v1.0.2
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
