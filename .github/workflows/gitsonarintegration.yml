@@ -1,18 +1,18 @@
-name: Python CI
+name: SonarQube Analysis
 
-on: 
+on:
   push:
-    branch: 
+    branches:
       - main
 
 jobs:
-
   sonarQubeScan:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -22,15 +22,19 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Adjust this to your project's Python version
+          python-version: '3.9'
 
       - name: Install Sonar Scanner
         run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip
           curl -Lo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner.zip -d $HOME
-          export PATH=$PATH:$HOME/sonar-scanner-4.6.2.2472-linux/bin
+          echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_ENV
+
+      - name: Add SonarScanner to PATH
+        run: echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
+
+      - name: Verify SonarScanner installation
+        run: sonar-scanner --version
 
       - name: Run SonarQube scan
         env:
