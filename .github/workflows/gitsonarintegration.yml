@@ -25,7 +25,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v1.0.2  # Specify the action version
+        uses: sonarsource/sonarqube-scan-action@master  # Specify the action version
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
